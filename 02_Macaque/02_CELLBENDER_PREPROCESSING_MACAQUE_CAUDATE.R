@@ -522,3 +522,4 @@ stackedbarplot(seurM_corr[[]], groupfill = 'newannot', groupx = 'orig.ident', fn
 stackedbarplot(seurM_corr[[]], groupfill = 'newannot', groupx = 'Age', fn = paste0(pref, '_Age_Caudate_Annotated'))
 
 # Save
+saveRDS(seurM_corr, "/home2/gkonop/workdir/01_MACAQUE/OUR/02_CELLBENDERED_CLUSTER/CAUDATE/ANNOTATION/Macaque_Caudate_Our_Annotated_FINAL.RDS")
