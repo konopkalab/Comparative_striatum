@@ -39,5 +39,28 @@ fastqdir="/home2/gkonop/project/00_BCL/NHP_STRIATUM_050323/2023_05_03_NOV6_12830
 # Run cellranger
 cellranger count --id=celllranger_count_Sample_30 --transcriptome=$refdir --fastqs=$fastqdir --sample=Sample_30 --include-introns
 
+cellranger count --id=celllranger_count_Sample_26 --transcriptome=$refdir --fastqs=$fastqdir --sample=Sample_26 --include-introns
 
+cellranger count --id=celllranger_count_Sample_29 --transcriptome=$refdir --fastqs=$fastqdir --sample=Sample_29 --include-introns
 
+cellranger count --id=celllranger_count_Sample_33 --transcriptome=$refdir --fastqs=$fastqdir --sample=Sample_33 --include-introns
+
+cellranger count --id=celllranger_count_Sample_38 --transcriptome=$refdir --fastqs=$fastqdir --sample=Sample_38 --include-introns
+
+cellranger count --id=celllranger_count_Sample_48 --transcriptome=$refdir --fastqs=$fastqdir --sample=Sample_48 --include-introns
+
+cellranger count --id=celllranger_count_Sample_53 --transcriptome=$refdir --fastqs=$fastqdir --sample=Sample_53 --include-introns
+
+cellranger count --id=celllranger_count_Sample_25 --transcriptome=$refdir --fastqs=$fastqdir --sample=Sample_25 --include-introns
+
+cellranger count --id=celllranger_count_Sample_42 --transcriptome=$refdir --fastqs=$fastqdir --sample=Sample_42 --include-introns
+
+cellranger count --id=celllranger_count_Sample_34 --transcriptome=$refdir --fastqs=$fastqdir --sample=Sample_34 --include-introns
+
+cellranger count --id=celllranger_count_Sample_43 --transcriptome=$refdir --fastqs=$fastqdir --sample=Sample_43 --include-introns
+
+cellranger count --id=celllranger_count_Sample_37 --transcriptome=$refdir --fastqs=$fastqdir --sample=Sample_37 --include-introns
+
+cellranger count --id=celllranger_count_Sample_47 --transcriptome=$refdir --fastqs=$fastqdir --sample=Sample_47 --include-introns
+
+cellranger count --id=celllranger_count_Sample_52 --transcriptome=$refdir --fastqs=$fastqdir --sample=Sample_52 --include-introns
