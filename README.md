@@ -1,5 +1,14 @@
 # Comparative striatum
 - The repository includes all the scripts used in paper DOI:
+- The numbers indicate order.
 - The list of the scripts:
 ## 01_Generate_NHP_gtf_files
-- Is the folder with scripts to generate NHP gtf files after liftoff to human gtf.
+- Folder contains scripts to generate NHP gtf files after liftoff to human gtf.
+## 02_Species
+- Folder contains scripts to integrate and annotate the data from each species.
+- The scripts start from the raw fastqs/bcl and generate annoated seurat objects for all regions for each species.
+## 03_SPNs
+- Folder contains spiny projection neuron-related analyses scripts.
+## 04_Interneurons
+- Folder contains striatal interneuron-related analyses scripts.
+  
