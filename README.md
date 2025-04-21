@@ -1,5 +1,5 @@
 # Comparative striatum
-- The repository includes all the scripts used in paper DOI:
+- The repository includes all the scripts used in paper DOI: https://doi.org/10.1101/2025.04.20.649707
 - The numbers indicate order.
 - The list of the scripts:
 ## 01_Generate_NHP_gtf_files
