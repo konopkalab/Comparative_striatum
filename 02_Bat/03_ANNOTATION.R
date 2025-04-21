@@ -659,3 +659,292 @@ file.remove(outfls)
 
 # Save
 write_rds(seurM_corr, '~/workdir/01_BAT/02_CLUSTER_ANNOTATE/PUTAMEN/Bat_Putamen_Seurat_CB_Annotated.RDS')
+#################################################################
+### integrate bat caudate and putamen
+# load the data
+bat_caud <- readRDS("/endosome/work/Neuroinformatics_Core/gkonop/01_BAT/03_CLUSTER_ANNOTATE/CAUDATE/Bat_Caudate_Seurat_CB_Annotated.RDS")
+bat_put <- readRDS("/endosome/work/Neuroinformatics_Core/gkonop/01_BAT/03_CLUSTER_ANNOTATE/PUTAMEN/Bat_Putamen_Seurat_CB_Annotated.RDS")
+
+# merge
+seurM <- merge(bat_caud,bat_put)
+
+# Split data
+seurM$id = paste0(seurM$orig.ident, '_', seurM$Tissue)
+seurML = SplitObject(seurM, split.by = "id")
+
+# normalize and identify variable features for each dataset independently
+seurML = lapply(X = seurML, FUN = function(x) {
+    x = NormalizeData(x)
+    x = FindVariableFeatures(x, selection.method = "vst", nfeatures = 2000)
+})
+
+# select features that are repeatedly variable across datasets for integration run PCA on each
+# dataset using these features
+features = SelectIntegrationFeatures(object.list = seurML)
+print(paste0('Number of genes to use for integration: ', length(features)))
+seurML = lapply(X = seurML, FUN = function(x) {
+    x = ScaleData(x, features = features, verbose = FALSE)
+    x = RunPCA(x, features = features, verbose = FALSE)
+})
+
+
+## cca gives a mmerory problem try integrating with rpca
+anchors = FindIntegrationAnchors(object.list = seurML, anchor.features = features, reduction = "rpca")
+
+# integrate 
+bat_integrated = IntegrateData(anchorset = anchors)
+
+
+# Clustering
+DefaultAssay(bat_integrated) = 'integrated'
+bat_integrated = ScaleData(bat_integrated, verbose = FALSE)
+bat_integrated = RunPCA(bat_integrated, verbose = FALSE)
+bat_integrated = RunUMAP(bat_integrated, dims = 1:20, reduction = 'pca')
+
+setwd("/endosome/work/Neuroinformatics_Core/gkonop/01_BAT/03_CLUSTER_ANNOTATE/Caudate_Putamen/CLUSTERING_1/")
+
+
+bat_integrated = FindNeighbors(bat_integrated, dims = 1:20, reduction = 'pca')
+bat_integrated = FindClusters(bat_integrated, resolution = 2)
+
+
+pdf(paste0(pref, "_INTEGRATED_SAMPLES.pdf"))
+DimPlot(bat_integrated, group.by = "orig.ident", label = T, raster = T) + NoLegend()
+dev.off()
+
+pdf(paste0(pref, "_INTEGRATED_CLUSTERS.pdf"))
+DimPlot(bat_integrated, label = T, raster = T) + NoLegend()
+dev.off()
+
+stackedbarplot(bat_integrated[[]], groupx = 'seurat_clusters', groupfill = 'orig.ident', paste0(pref, '_INTEGRATED_STACK_SAMPLES'), wd = 20)
+
+
+# Plot previously identified markers
+DefaultAssay(bat_integrated) = 'RNA'
+human_integrated = NormalizeData(bat_integrated)
+
+pdf(paste0(pref, "_INTEGRATED_DOTPLOT.pdf"), width = 20, height = 10)
+DotPlot(bat_integrated, features = marksToPlot) +
+xlab('') +
+ylab('') +
+theme(axis.text.x=element_text(size=20, face = 'bold'),
+	axis.text.y=element_text(size=20, face = 'bold'),
+	legend.text = element_text(size=20, face = 'bold'),
+	legend.title = element_text(size=20, face = 'bold')) +
+rotate_x_text(45)
+dev.off()
+
+pdf(paste0(pref, "_INTEGRATED_DEPTH.pdf"))
+ggboxplot(bat_integrated[[]], x = 'seurat_clusters', y = 'nFeature_RNA', color = 'black') + NoLegend() +
+rotate_x_text(90)
+dev.off()
+
+pdf(paste0(pref, "_INTEGRATED_FEATUREPLOT.pdf"), width = 15, height = 35)
+FeaturePlot(bat_integrated, features = marksToPlot, sort = T, raster = T, pt.size = 2)
+dev.off()
+
+pdf(paste0(pref, "_INTEGRATED_NUCLEAR_FRACTION.pdf"))
+ggboxplot(bat_integrated[[]], x = 'seurat_clusters', y = 'intronRat') +
+rotate_x_text(90) +
+theme(text=element_text(size=20, face = 'bold'))
+dev.off()
+
+saveRDS(bat_integrated, file= "/endosome/work/Neuroinformatics_Core/gkonop/01_BAT/03_CLUSTER_ANNOTATE/Caudate_Putamen/CLUSTERING_1/GB_bat_integrated_cuadate_putamen_CLUSTERING_1.RDS")
+##########################################
+###
+## FILTER AND REPLOT 1
+####
+#Cluster#,Cell_type
+#0,dSPN
+#1,MOL
+#2,iSPN
+#3,MOL
+#4,dSPN
+#5,iSPN
+#6,MOL
+#7,Astrocyte
+#8,dSPN
+#9,iSPN
+#10,iSPN
+#11,MOL
+#12,Astrocyte
+#13,OPC
+#14,dSPN
+#15,dSPN
+#16,dSPN
+#17,MOL
+#18,Microglia
+#19,iSPN
+#20,Astrocyte
+#21,dSPN
+#22,iSPN
+#23,Astrocyte
+#24,iSPN
+#25,Non_SPN
+#26,Non_SPN
+#27,iSPN
+#28,dSPN
+#29,dSPN
+#30*,doublet
+#31,Non_SPN
+#32*,Endo
+#33,Non_SPN
+#34,Non_SPN
+#35,Non_SPN
+#36,Non_SPN
+#37*,Exc_neu
+#38,OPC
+#39,Astrocyte
+#40,Non_SPN
+#41,Non_SPN
+#42,iSPN
+#43,OPC
+
+setwd("/endosome/work/Neuroinformatics_Core/gkonop/01_BAT/03_CLUSTER_ANNOTATE/Caudate_Putamen/CLUSTERING_2/")
+
+## remove 
+vasculature = c(32)
+empty_drop = c()
+doublet = c(30,37)
+seurM = subset(bat_integrated, subset = seurat_clusters %in% c(vasculature, empty_drop, doublet), invert = T)
+seurM_corr = clusterBatchCorrect(seurM, npcs = 30, res = 1, pref = pref, sampleName = 'orig.ident')
+
+
+# QC PLOTS
+pdf(paste0(pref, "_Clusters.pdf"))
+DimPlot(seurM_corr, group.by = 'seurat_clusters', label = T, raster = T, label.size = 7) +
+NoLegend() +
+ggtitle('')
+dev.off()
+
+pdf(paste0(pref, "_Depth_Gene.pdf"))
+ggboxplot(seurM_corr[[]], x = 'seurat_clusters', y = 'nFeature_RNA') +
+rotate_x_text(90)
+dev.off()
+
+pdf(paste0(pref, "_Depth_UMI.pdf"))
+ggboxplot(seurM_corr[[]], x = 'seurat_clusters', y = 'nCount_RNA', ylim = c(0,10000)) +
+rotate_x_text(90) +
+theme(text=element_text(size=20, face = 'bold'))
+dev.off()
+
+pdf(paste0(pref, "_NuclearFraction.pdf"))
+ggboxplot(seurM_corr[[]], x = 'seurat_clusters', y = 'intronRat') +
+rotate_x_text(90) +
+theme(text=element_text(size=20, face = 'bold'))
+dev.off()
+
+# MARKER GENE PLOTS
+DefaultAssay(seurM_corr) = 'RNA'
+seurM_corr = NormalizeData(seurM_corr)
+
+pdf(paste0(pref, "_MarkersDotPlot.pdf"), width = 20, height = 10)
+DotPlot(seurM_corr, features = marksToPlot) +
+xlab('') +
+ylab('') +
+theme(axis.text.x=element_text(size=20, face = 'bold'),
+	axis.text.y=element_text(size=20, face = 'bold'),
+	legend.text = element_text(size=20, face = 'bold'),
+	legend.title = element_text(size=20, face = 'bold')) +
+rotate_x_text(45)
+dev.off()
+
+# Save (optional)
+saveRDS(seurM_corr, "/endosome/work/Neuroinformatics_Core/gkonop/01_BAT/03_CLUSTER_ANNOTATE/Caudate_Putamen/CLUSTERING_2/GB_bat_integrated_cuadate_putamen_CLUSTERING_2.RDS")
+##################################################################################
+###
+## ANNOTATE
+####
+#Cluster#,Cell_type
+#0,MOL
+#1,SPN
+#2,SPN
+#3,Astrocyte
+#4,SPN
+#5,SPN
+#6,SPN
+#7,MOL
+#8,SPN
+#9,SPN
+#10,OPC
+#11,Microglia
+#12,SPN
+#13,Non_SPN
+#14,MOL
+#15,SPN
+#16,MOL
+#17,SPN
+#18,Non_SPN
+#19,Non_SPN
+#20,Astrocyte
+#21,Non_SPN
+#22,Astrocyte
+#23,SPN
+#24,Non_SPN
+#25,SPN
+#26,Astrocyte
+#27,OPC
+#28,Astrocyte
+#29,Non_SPN
+#30,COP
+#31,Microglia
+#32,OPC
+(mapnames <- setNames(c("MOL","SPN","SPN","Astrocyte","SPN","SPN","SPN","MOL","SPN","SPN","OPC","Microglia","SPN","Non_SPN","MOL","SPN","MOL","SPN","Non_SPN","Non_SPN","Astrocyte","Non_SPN","Astrocyte","SPN","Non_SPN","SPN","Astrocyte","OPC","Astrocyte","Non_SPN","COP","Microglia","OPC"), 0:32))
+seurM_corr[["newannot"]] <- mapnames[seurM_corr[["seurat_clusters"]][,1]]
+Idents(seurM_corr) = seurM_corr$newannot
+
+setwd("/endosome/work/Neuroinformatics_Core/gkonop/01_BAT/03_CLUSTER_ANNOTATE/Caudate_Putamen/ANNOTATED/")
+pref <- "GB_bat_caudate_putamen_integrated"
+
+# PLOTS
+pdf(paste0(pref, "_Clusters_Annotated.pdf"))
+DimPlot(seurM_corr, group.by = 'newannot', label = T, raster = T, repel = T, label.size = 7) +
+NoLegend() +
+ggtitle('')
+dev.off()
+
+pdf(paste0(pref, "_Depth_Gene_Annotated.pdf"))
+ggboxplot(seurM_corr[[]], x = 'newannot', y = 'nFeature_RNA') +
+rotate_x_text(90)
+dev.off()
+
+pdf(paste0(pref, "_Depth_UMI_Annotated.pdf"))
+ggboxplot(seurM_corr[[]], x = 'newannot', y = 'nCount_RNA', ylim = c(0,80000)) +
+rotate_x_text(90) +
+theme(text=element_text(size=20, face = 'bold'))
+dev.off()
+
+pdf(paste0(pref, "_NuclearFraction_Annotated.pdf"))
+ggboxplot(seurM_corr[[]], x = 'newannot', y = 'intronRat') +
+rotate_x_text(90) +
+theme(text=element_text(size=20, face = 'bold'))
+dev.off()
+
+
+DefaultAssay(seurM_corr) = 'RNA'
+seurM_corr = NormalizeData(seurM_corr)
+
+pdf(paste0(pref, "_MarkersDotPlot.pdf"), width = 25, height = 10)
+DotPlot(seurM_corr, features = marksToPlot, group.by = "newannot") +
+xlab('') +
+ylab('') +
+theme(axis.text.x=element_text(size=20, face = 'bold'),
+	axis.text.y=element_text(size=20, face = 'bold'),
+	legend.text = element_text(size=20, face = 'bold'),
+	legend.title = element_text(size=20, face = 'bold')) +
+rotate_x_text(45)
+dev.off()
+
+stackedbarplot(seurM_corr[[]], groupfill = 'newannot', groupx = 'Species', fn = paste0(pref, '_Stacked_Annotated_Species'))
+
+stackedbarplot(seurM_corr[[]], groupfill = 'Species', groupx = 'newannot', fn = paste0(pref, '_Stacked_Annotated_Species2'))
+
+stackedbarplot(seurM_corr[[]], groupfill = 'newannot', groupx = 'orig.ident', fn = paste0(pref, '_Stacked_Annotated_Samples'))
+
+stackedbarplot(seurM_corr[[]], groupfill = 'orig.ident', groupx = 'newannot', fn = paste0(pref, '_Stacked_AnnotatedSamples2'), wd = 20)
+
+stackedbarplot(seurM_corr[[]], groupfill = 'Tissue', groupx = 'newannot', fn = paste0(pref, '_Stacked_Annotated_Tissue'))
+
+
+# Save
+saveRDS(seurM_corr, '/endosome/work/Neuroinformatics_Core/gkonop/01_BAT/03_CLUSTER_ANNOTATE/Caudate_Putamen/ANNOTATED/bat_integrated_cuadate_putamen_ANNOTATED.RDS')
