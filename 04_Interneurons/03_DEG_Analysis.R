@@ -137,16 +137,48 @@ a$delabel <- ifelse(rownames(a) == "LMO3", "LMO3", rownames(a))
 # save
 write.csv(a, "batPutamen_LMO3vsOtherInterneurons_FindMarkersDEGs_Filtered.csv", quote = F, row.names = T) 
 
+
 # Create the volcano plot
-(plot <- ggplot(a, aes(x = avg_log2FC, y = -log10(p_val_adj), col = diffexpressed, label = delabel)) +
-	theme_bw() +
-	geom_point(alpha = 0.5) +  # Plot the points
-	geom_vline(xintercept = c(-0.6, 0.6), col = "grey", linetype = "longdash") +  # Vertical lines for log2FC cutoffs
-	geom_hline(yintercept = -log10(0.05), col = "grey", linetype = "longdash") +  # Horizontal line for p-value cutoff
-	scale_colour_manual(name = "DEG", values = c("blue", "black", "darkgreen")) +  # Coloring for DEG status
-	geom_text_repel(data = labeled, aes(label = rownames(labeled)), nudge_y = 0.2, box.padding = 0.3, point.padding = 0.3) +  # Label significant genes
-	geom_text_repel(data = subset(a, delabel == "LMO3"), aes(label = delabel), nudge_y = 0.2, box.padding = 0.3, point.padding = 0.3) +  # Ensure LMO3 is labeled
-	ggtitle(paste("Volcano Plot: LMO3 vs All Other Interneurons")))  # Add title to the plot
+plot <- ggplot(
+  a,
+  aes(
+    x = avg_log2FC,
+    y = -log10(p_val_adj),
+    col = diffexpressed,
+    label = delabel
+  )
+) +
+  theme_bw() +
+  geom_point(alpha = 0.5) +
+  geom_vline(xintercept = c(-0.6, 0.6), col = "grey", linetype = "longdash") +
+  geom_hline(yintercept = -log10(0.05), col = "grey", linetype = "longdash") +
+  scale_colour_manual(name = "DEG", values = c("blue", "black", "darkgreen")) +
+
+  geom_text_repel(
+    data = labeled,
+    aes(label = rownames(labeled)),
+    nudge_y = 0.2,
+    box.padding = 0.3,
+    point.padding = 0.3
+  ) +
+  geom_text_repel(
+    data = subset(a, delabel == "LMO3"),
+    aes(label = delabel),
+    nudge_y = 0.2,
+    box.padding = 0.3,
+    point.padding = 0.3
+  ) +
+
+  scale_x_continuous(
+    limits = c(-5.5, 5.5),
+    breaks = seq(-5.5, 5.5, by = 2.5)
+  ) +
+  scale_y_continuous(
+    limits = c(0, 250),
+    breaks = seq(0, 250, by = 50)
+  ) +
+
+  ggtitle("Volcano Plot: LMO3 vs All Other Interneurons")
 
 # Save the plot for each comparison to a PDF file
 pdf(paste0("VolcanoPlot_LMO3_vs_AllOtherInterneurons_withinBat_FindMarkers_DEGs.pdf"))
@@ -226,22 +258,44 @@ labeled <- a[abs(a$avg_log2FC) > 0.7 & a$p_val_adj < 0.05, ]
 
 
 # Ensure "FOXP2_TSHZ2" is labeled by adding it to a delabel column or directly referring to it
-a$delabel <- ifelse(rownames(a) == "FOXP2_TSHZ2", "FOXP2_TSHZ2", rownames(a))
+a$delabel <- ifelse(rownames(a) %in% c("FOXP2", "TSHZ2"), rownames(a), NA
 
 a_foxp2_tshz2 <- a
 # save
 write.csv(a_foxp2_tshz2, "batPutamen_FOXP2_TSHZ2vsOtherInterneurons_FindMarkersDEGs_Filtered.csv", quote = F, row.names = T) 
 
+
 # Create the volcano plot
-(plot <- ggplot(a_foxp2_tshz2, aes(x = avg_log2FC, y = -log10(p_val_adj), col = diffexpressed, label = delabel)) +
-	theme_bw() +
-	geom_point(alpha = 0.5) +  # Plot the points
-	geom_vline(xintercept = c(-0.6, 0.6), col = "grey", linetype = "longdash") +  # Vertical lines for log2FC cutoffs
-	geom_hline(yintercept = -log10(0.05), col = "grey", linetype = "longdash") +  # Horizontal line for p-value cutoff
-	scale_colour_manual(name = "DEG", values = c("blue", "black", "darkgreen")) +  # Coloring for DEG status
-	geom_text_repel(data = labeled, aes(label = rownames(labeled)), nudge_y = 0.2, box.padding = 0.3, point.padding = 0.3) +  # Label significant genes
-	geom_text_repel(data = subset(a_foxp2_tshz2, delabel == "TSHZ2"), aes(label = delabel), nudge_y = 0.2, box.padding = 0.3, point.padding = 0.3) +  # Ensure TSHZ2 is labeled
-	ggtitle(paste("Volcano Plot: FOXP2_TSHZ2 vs All Other Interneurons")))  # Add title to the plot
+plot <- ggplot(
+  a_foxp2_tshz2,
+  aes(
+    x = avg_log2FC,
+    y = -log10(p_val_adj),
+    col = diffexpressed,
+    label = delabel
+  )
+) +
+  theme_bw() +
+  geom_point(alpha = 0.5) +
+  geom_vline(xintercept = c(-0.6, 0.6), col = "grey", linetype = "longdash") +
+  geom_hline(yintercept = -log10(0.05), col = "grey", linetype = "longdash") +
+  scale_colour_manual(name = "DEG", values = c("blue", "black", "darkgreen")) +
+
+geom_text_repel(data = labeled, aes(label = rownames(labeled)), nudge_y = 0.2, box.padding = 0.3, point.padding = 0.3) +
+  # Label significant genes
+  geom_text_repel(data = subset(a_foxp2_tshz2, delabel == "TSHZ2"), aes(label = delabel), nudge_y = 0.2, box.padding = 0.3, point.padding = 0.3) +  # Ensure TSHZ2 is labeled
+
+  scale_x_continuous(
+    limits = c(-5.5, 5.5),
+    breaks = seq(-5.5, 5.5, by = 2.5)
+  ) +
+  scale_y_continuous(
+    limits = c(0, 250),
+    breaks = seq(0, 250, by = 50)
+  ) +
+
+  ggtitle("Volcano Plot: FOXP2_TSHZ2 vs All Other Interneurons")
+
 
 # Save the plot for each comparison to a PDF file
 pdf(paste0("VolcanoPlot_FOXP2_TSHZ2_vs_AllOtherInterneurons_withinBat_FindMarkers_DEGs.pdf"))
