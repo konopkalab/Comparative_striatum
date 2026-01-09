@@ -171,7 +171,7 @@ plot <- ggplot(
 
   scale_x_continuous(
     limits = c(-5.5, 5.5),
-    breaks = seq(-5.5, 5.5, by = 2.5)
+    breaks = c(-5, -2.5, 0, 2.5, 5)
   ) +
   scale_y_continuous(
     limits = c(0, 250),
@@ -287,7 +287,7 @@ geom_text_repel(data = labeled, aes(label = rownames(labeled)), nudge_y = 0.2, b
 
   scale_x_continuous(
     limits = c(-5.5, 5.5),
-    breaks = seq(-5.5, 5.5, by = 2.5)
+    breaks = c(-5, -2.5, 0, 2.5, 5)
   ) +
   scale_y_continuous(
     limits = c(0, 250),
