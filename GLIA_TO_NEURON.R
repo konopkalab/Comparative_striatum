@@ -106,8 +106,7 @@ ylab('Glia / Neuron Ratio') +
 theme(text=element_text(size=20, face = 'bold')) +
 rotate_x_text(90) +
 facet_wrap(~Species, nrow = 1) +
-scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
-stat_compare_means(comparisons = comps, method = 't.test')
+scale_y_continuous(breaks = scales::pretty_breaks(n = 10))
 dev.off()
 
 ### correct for multi-test
@@ -125,8 +124,7 @@ xlab('') +
 ylab('Glia / Neuron Ratio in Caudate') +
 theme(text=element_text(size=20, face = 'bold')) +
 rotate_x_text(90) +
-scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
-stat_compare_means(comparisons = comps, method = 't.test')
+scale_y_continuous(breaks = scales::pretty_breaks(n = 10))
 dev.off()
 
 compare_means(neuronRat ~ Species, data = df_no_mouse_caud,  method = "t.test", p.adjust.method = "BH")
@@ -140,8 +138,7 @@ xlab('') +
 ylab('Glia / Neuron Ratio in Putamen') +
 theme(text=element_text(size=20, face = 'bold')) +
 rotate_x_text(90) +
-scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
-stat_compare_means(comparisons = comps, method = 't.test')
+scale_y_continuous(breaks = scales::pretty_breaks(n = 10))
 dev.off()
 
 compare_means(neuronRat ~ Species, data = df_no_mouse_put,  method = "t.test", p.adjust.method = "BH")
@@ -156,8 +153,7 @@ xlab('') +
 ylab('Glia / Neuron Ratio') +
 theme(text=element_text(size=20, face = 'bold')) +
 rotate_x_text(90) +
-scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
-stat_compare_means(comparisons = comps, method = 't.test')
+scale_y_continuous(breaks = scales::pretty_breaks(n = 10))
 dev.off()
 
 compare_means(neuronRat ~ Species, data = df,  method = "t.test", p.adjust.method = "BH")
@@ -167,7 +163,6 @@ compare_means(neuronRat ~ Species, data = df,  method = "t.test", p.adjust.metho
 
 # Assign glia or neuron
 all_meta$OorN = ifelse(all_meta$newannot %in% c('SPN', 'Non_SPN'), 'Neuron', ifelse(all_meta$newannot %in% c('OPC', 'COP'), 'OPC', 'Glia'))
-
 
 # Calculate the ratio for tissues
 df = all_meta %>% group_by(orig.ident,Tissue,Species) %>% group_keys %>% as.data.frame
@@ -190,8 +185,7 @@ ylab('OPC / Neuron Ratio') +
 theme(text=element_text(size=20, face = 'bold')) +
 rotate_x_text(90) +
 facet_wrap(~Species, nrow = 1) +
-scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
-stat_compare_means(comparisons = comps, method = 't.test')
+scale_y_continuous(breaks = scales::pretty_breaks(n = 10))
 dev.off()
 
 # multi-test correction
@@ -200,41 +194,14 @@ compare_means(N_to_OPC ~ Tissue, group.by = "Species", data = df,  method = "t.t
 # Compare and plot the ratio across species
 comps = list(c('Marmoset', 'Macaque'), c('Marmoset', 'Human'), c('Macaque', 'Human'), c('Chimp', 'Human'), c('Human', 'Bat'))
 
-df_no_mouse_caud = df_no_mouse[df_no_mouse$Tissue == 'Caudate',]
 
-pdf("GB_OPC_to_Neuron_Ratio_Caudate_Across_Species.pdf", width = 6, height = 6)
-ggboxplot(df_no_mouse_caud, x = 'Species', y = 'OPC_to_N', color = 'Species', add = 'dotplot', size = 1) +
+df_caud = df[df$Tissue != 'Putamen',]
+
+pdf(paste0(outdir,"Neuron_to_OPC_Ratio_Caudate_Across_Species.pdf"), width = 6, height = 6)
+ggboxplot(df_caud, x = 'Species', y = 'N_to_OPC', color = 'Species', add = 'dotplot', size = 1) +
 NoLegend() +
 xlab('') +
-ylab('OPC / Neuron Ratio in Caudate') +
-theme(text=element_text(size=20, face = 'bold')) +
-rotate_x_text(90) +
-scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
-stat_compare_means(comparisons = comps, method = 't.test')
-dev.off()
-
-
-df_no_mouse_put = df_no_mouse[df_no_mouse$Tissue == 'Putamen',]
-
-pdf("GB_OPC_to_Neuron_Ratio_Putamen_Across_Species.pdf", width = 6, height = 6)
-ggboxplot(df_no_mouse_put, x = 'Species', y = 'OPC_to_N', color = 'Species', add = 'dotplot', size = 1) +
-NoLegend() +
-xlab('') +
-ylab('OPC / Neuron Ratio in Putamen') +
-theme(text=element_text(size=20, face = 'bold')) +
-rotate_x_text(90) +
-scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
-stat_compare_means(comparisons = comps, method = 't.test')
-dev.off()
-
-# Comparison with mouse (caudate+putamen)
-comps = list(c('Marmoset', 'Macaque'), c('Marmoset', 'Human'), c('Macaque', 'Human'), c('Chimp', 'Human'), c('Human', 'Bat'), c('Human', 'Mouse'), c('Bat', 'Mouse'))
-
-pdf("GB_OPC_to_Neuron_Ratio_DorsalStriatum_Across_Species.pdf", width = 6, height = 6)
-ggboxplot(df, x = 'Species', y = 'OPC_to_N', color = 'Species', add = 'dotplot', size = 1) +
-NoLegend() +
-xlab('') +
-ylab('OPC / Neuron Ratio') +
+ylab('Neuron / OPC Ratio in Caudate') +
 theme(text=element_text(size=20, face = 'bold')) +
 rotate_x_text(90) +
 scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
@@ -273,52 +240,31 @@ ylab('MOL / Neuron Ratio') +
 theme(text=element_text(size=20, face = 'bold')) +
 rotate_x_text(90) +
 facet_wrap(~Species, nrow = 1) +
-scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
-stat_compare_means(comparisons = comps, method = 't.test')
+scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) 
 dev.off()
+
+# multi-test correction
+compare_means(N_to_MOL ~ Tissue, group.by = "Species", data = df_no_mouse,  method = "t.test", p.adjust.method = "BH")
 
 # Compare and plot the ratio across species
 comps = list(c('Marmoset', 'Macaque'), c('Marmoset', 'Human'), c('Macaque', 'Human'), c('Chimp', 'Human'), c('Human', 'Bat'))
 
-df_no_mouse_caud = df_no_mouse[df_no_mouse$Tissue == 'Caudate',]
 
-pdf("GB_MOL_to_Neuron_Ratio_Caudate_Across_Species.pdf", width = 6, height = 6)
-ggboxplot(df_no_mouse_caud, x = 'Species', y = 'MOL_to_N', color = 'Species', add = 'dotplot', size = 1) +
+df_caud = df[df$Tissue != 'Putamen',]
+
+pdf(paste0(outdir,"Neuron_to_MOL_Ratio_Caudate_Across_Species.pdf"), width = 6, height = 6)
+ggboxplot(df_caud, x = 'Species', y = 'N_to_MOL', color = 'Species', add = 'dotplot', size = 1) +
 NoLegend() +
 xlab('') +
-ylab('MOL / Neuron Ratio in Caudate') +
+ylab('Neuron / MOL Ratio in Caudate') +
 theme(text=element_text(size=20, face = 'bold')) +
 rotate_x_text(90) +
 scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
 stat_compare_means(comparisons = comps, method = 't.test')
 dev.off()
 
-df_no_mouse_put = df_no_mouse[df_no_mouse$Tissue == 'Putamen',]
-
-pdf("GB_MOL_to_Neuron_Ratio_Putamen_Across_Species.pdf", width = 6, height = 6)
-ggboxplot(df_no_mouse_put, x = 'Species', y = 'MOL_to_N', color = 'Species', add = 'dotplot', size = 1) +
-NoLegend() +
-xlab('') +
-ylab('MOL / Neuron Ratio in Putamen') +
-theme(text=element_text(size=20, face = 'bold')) +
-rotate_x_text(90) +
-scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
-stat_compare_means(comparisons = comps, method = 't.test')
-dev.off()
-
-# Comparison with mouse (caudate+putamen)
-comps = list(c('Marmoset', 'Macaque'), c('Marmoset', 'Human'), c('Macaque', 'Human'), c('Chimp', 'Human'), c('Human', 'Bat'), c('Human', 'Mouse'), c('Bat', 'Mouse'))
-
-pdf("GB_MOL_to_Neuron_Ratio_DorsalStriatum_Across_Species.pdf", width = 6, height = 6)
-ggboxplot(df, x = 'Species', y = 'MOL_to_N', color = 'Species', add = 'dotplot', size = 1) +
-NoLegend() +
-xlab('') +
-ylab('MOL / Neuron Ratio') +
-theme(text=element_text(size=20, face = 'bold')) +
-rotate_x_text(90) +
-scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
-stat_compare_means(comparisons = comps, method = 't.test')
-dev.off()
+# multi-test correction
+compare_means(N_to_MOL ~ Species, data = df_caud,  method = "t.test", p.adjust.method = "BH")
 
 ####
 ## Astrocyte / NEURON
@@ -352,48 +298,28 @@ scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
 stat_compare_means(comparisons = comps, method = 't.test')
 dev.off()
 
+# multi-test correction
+compare_means(N_to_Ast ~ Tissue, group.by = "Species", data = df_no_mouse,  method = "t.test", p.adjust.method = "BH")
+
 # Compare and plot the ratio across species
 comps = list(c('Marmoset', 'Macaque'), c('Marmoset', 'Human'), c('Macaque', 'Human'), c('Chimp', 'Human'), c('Human', 'Bat'))
 
-df_no_mouse_caud = df_no_mouse[df_no_mouse$Tissue == 'Caudate',]
 
-pdf("GB_Ast_to_Neuron_Ratio_Caudate_Across_Species.pdf", width = 6, height = 6)
-ggboxplot(df_no_mouse_caud, x = 'Species', y = 'Ast_to_N', color = 'Species', add = 'dotplot', size = 1) +
+df_caud = df[df$Tissue != 'Putamen',]
+
+pdf(paste0(outdir,"Neuron_to_Ast_Ratio_Caudate_Across_Species.pdf"), width = 6, height = 6)
+ggboxplot(df_caud, x = 'Species', y = 'N_to_Ast', color = 'Species', add = 'dotplot', size = 1) +
 NoLegend() +
 xlab('') +
-ylab('Ast / Neuron Ratio in Caudate') +
+ylab('Neuron / Ast Ratio in Caudate') +
 theme(text=element_text(size=20, face = 'bold')) +
 rotate_x_text(90) +
 scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
 stat_compare_means(comparisons = comps, method = 't.test')
 dev.off()
 
-df_no_mouse_put = df_no_mouse[df_no_mouse$Tissue == 'Putamen',]
-
-pdf("GB_Ast_to_Neuron_Ratio_Putamen_Across_Species.pdf", width = 6, height = 6)
-ggboxplot(df_no_mouse_put, x = 'Species', y = 'Ast_to_N', color = 'Species', add = 'dotplot', size = 1) +
-NoLegend() +
-xlab('') +
-ylab('Ast / Neuron Ratio in Putamen') +
-theme(text=element_text(size=20, face = 'bold')) +
-rotate_x_text(90) +
-scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
-stat_compare_means(comparisons = comps, method = 't.test')
-dev.off()
-
-# Comparison with mouse (caudate+putamen)
-comps = list(c('Marmoset', 'Macaque'), c('Marmoset', 'Human'), c('Macaque', 'Human'), c('Chimp', 'Human'), c('Human', 'Bat'), c('Human', 'Mouse'), c('Bat', 'Mouse'))
-
-pdf("GB_Ast_to_Neuron_Ratio_DorsalStriatum_Across_Species.pdf", width = 6, height = 6)
-ggboxplot(df, x = 'Species', y = 'Ast_to_N', color = 'Species', add = 'dotplot', size = 1) +
-NoLegend() +
-xlab('') +
-ylab('Ast / Neuron Ratio') +
-theme(text=element_text(size=20, face = 'bold')) +
-rotate_x_text(90) +
-scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
-stat_compare_means(comparisons = comps, method = 't.test')
-dev.off()
+# multi-test correction
+compare_means(N_to_Ast ~ Species, data = df_caud,  method = "t.test", p.adjust.method = "BH")
 
 ####
 ## Microglia / NEURON
@@ -428,49 +354,24 @@ scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
 stat_compare_means(comparisons = comps, method = 't.test')
 dev.off()
 
-# Compare and plot the ratio across species
-comps = list(c('Marmoset', 'Macaque'), c('Marmoset', 'Human'), c('Macaque', 'Human'), c('Chimp', 'Human'), c('Human', 'Bat'))
+# multi-test correction
+compare_means(N_to_Mig ~ Tissue, group.by = "Species", data = df_no_mouse,  method = "t.test", p.adjust.method = "BH")
 
-df_no_mouse_caud = df_no_mouse[df_no_mouse$Tissue == 'Caudate',]
+df_caud = df[df$Tissue != 'Putamen',]
 
-pdf("GB_Microglia_to_Neuron_Ratio_Caudate_Across_Species.pdf", width = 6, height = 6)
-ggboxplot(df_no_mouse_caud, x = 'Species', y = 'Mig_to_N', color = 'Species', add = 'dotplot', size = 1) +
+pdf(paste0(outdir,"Neuron_to_Ast_Ratio_Caudate_Across_Species.pdf"), width = 6, height = 6)
+ggboxplot(df_caud, x = 'Species', y = 'N_to_Mig', color = 'Species', add = 'dotplot', size = 1) +
 NoLegend() +
 xlab('') +
-ylab('Microglia / Neuron Ratio in Caudate') +
+ylab('Neuron to Microglia Ratio in Caudate') +
 theme(text=element_text(size=20, face = 'bold')) +
 rotate_x_text(90) +
 scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
 stat_compare_means(comparisons = comps, method = 't.test')
 dev.off()
 
-df_no_mouse_put = df_no_mouse[df_no_mouse$Tissue == 'Putamen',]
-
-pdf("GB_Microglia_to_Neuron_Ratio_Putamen_Across_Species.pdf", width = 6, height = 6)
-ggboxplot(df_no_mouse_put, x = 'Species', y = 'Mig_to_N', color = 'Species', add = 'dotplot', size = 1) +
-NoLegend() +
-xlab('') +
-ylab('Microglia / Neuron Ratio in Putamen') +
-theme(text=element_text(size=20, face = 'bold')) +
-rotate_x_text(90) +
-scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
-stat_compare_means(comparisons = comps, method = 't.test')
-dev.off()
-
-# Comparison with mouse (caudate+putamen)
-comps = list(c('Marmoset', 'Macaque'), c('Marmoset', 'Human'), c('Macaque', 'Human'), c('Chimp', 'Human'), c('Human', 'Bat'), c('Human', 'Mouse'), c('Bat', 'Mouse'))
-
-pdf("GB_Microglia_to_Neuron_Ratio_DorsalStriatum_Across_Species.pdf", width = 6, height = 6)
-ggboxplot(df, x = 'Species', y = 'Mig_to_N', color = 'Species', add = 'dotplot', size = 1) +
-NoLegend() +
-xlab('') +
-ylab('Microglia / Neuron Ratio') +
-theme(text=element_text(size=20, face = 'bold')) +
-rotate_x_text(90) +
-scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
-stat_compare_means(comparisons = comps, method = 't.test')
-dev.off()
-
+# multi-test correction
+compare_means(N_to_Mig ~ Species, data = df_caud,  method = "t.test", p.adjust.method = "BH")
 
 ####
 ## NON_SPN / SPN
