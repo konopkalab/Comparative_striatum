@@ -107,8 +107,11 @@ theme(text=element_text(size=20, face = 'bold')) +
 rotate_x_text(90) +
 facet_wrap(~Species, nrow = 1) +
 scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
-stat_compare_means(comparisons = comps, method = 'wilcox.test')
+stat_compare_means(comparisons = comps, method = 't.test')
 dev.off()
+
+### correct for multi-test
+compare_means(neuronRat ~ Tissue, data = df_no_mouse, group.by = "Species", method = "t.test", p.adjust.method = "BH")
 
 # Compare and plot the glia / neuron ratio across species
 comps = list(c('Marmoset', 'Macaque'), c('Marmoset', 'Human'), c('Macaque', 'Human'), c('Chimp', 'Human'), c('Human', 'Bat'))
@@ -123,8 +126,10 @@ ylab('Glia / Neuron Ratio in Caudate') +
 theme(text=element_text(size=20, face = 'bold')) +
 rotate_x_text(90) +
 scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
-stat_compare_means(comparisons = comps, method = 'wilcox.test')
+stat_compare_means(comparisons = comps, method = 't.test')
 dev.off()
+
+compare_means(neuronRat ~ Species, data = df_no_mouse_caud,  method = "t.test", p.adjust.method = "BH")
 
 df_no_mouse_put = df_no_mouse[df_no_mouse$Tissue == 'Putamen',]
 
@@ -136,8 +141,10 @@ ylab('Glia / Neuron Ratio in Putamen') +
 theme(text=element_text(size=20, face = 'bold')) +
 rotate_x_text(90) +
 scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
-stat_compare_means(comparisons = comps, method = 'wilcox.test')
+stat_compare_means(comparisons = comps, method = 't.test')
 dev.off()
+
+compare_means(neuronRat ~ Species, data = df_no_mouse_put,  method = "t.test", p.adjust.method = "BH")
 
 # Comparison with mouse (caudate+putamen)
 comps = list(c('Marmoset', 'Macaque'), c('Marmoset', 'Human'), c('Macaque', 'Human'), c('Chimp', 'Human'), c('Human', 'Bat'), c('Human', 'Mouse'), c('Bat', 'Mouse'))
@@ -150,9 +157,10 @@ ylab('Glia / Neuron Ratio') +
 theme(text=element_text(size=20, face = 'bold')) +
 rotate_x_text(90) +
 scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
-stat_compare_means(comparisons = comps, method = 'wilcox.test')
+stat_compare_means(comparisons = comps, method = 't.test')
 dev.off()
 
+compare_means(neuronRat ~ Species, data = df,  method = "t.test", p.adjust.method = "BH")
 ####
 ## OPC / NEURON
 ####
@@ -183,8 +191,11 @@ theme(text=element_text(size=20, face = 'bold')) +
 rotate_x_text(90) +
 facet_wrap(~Species, nrow = 1) +
 scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
-stat_compare_means(comparisons = comps, method = 'wilcox.test')
+stat_compare_means(comparisons = comps, method = 't.test')
 dev.off()
+
+# multi-test correction
+compare_means(N_to_OPC ~ Tissue, group.by = "Species", data = df,  method = "t.test", p.adjust.method = "BH")
 
 # Compare and plot the ratio across species
 comps = list(c('Marmoset', 'Macaque'), c('Marmoset', 'Human'), c('Macaque', 'Human'), c('Chimp', 'Human'), c('Human', 'Bat'))
@@ -199,8 +210,9 @@ ylab('OPC / Neuron Ratio in Caudate') +
 theme(text=element_text(size=20, face = 'bold')) +
 rotate_x_text(90) +
 scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
-stat_compare_means(comparisons = comps, method = 'wilcox.test')
+stat_compare_means(comparisons = comps, method = 't.test')
 dev.off()
+
 
 df_no_mouse_put = df_no_mouse[df_no_mouse$Tissue == 'Putamen',]
 
@@ -212,7 +224,7 @@ ylab('OPC / Neuron Ratio in Putamen') +
 theme(text=element_text(size=20, face = 'bold')) +
 rotate_x_text(90) +
 scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
-stat_compare_means(comparisons = comps, method = 'wilcox.test')
+stat_compare_means(comparisons = comps, method = 't.test')
 dev.off()
 
 # Comparison with mouse (caudate+putamen)
@@ -226,8 +238,11 @@ ylab('OPC / Neuron Ratio') +
 theme(text=element_text(size=20, face = 'bold')) +
 rotate_x_text(90) +
 scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
-stat_compare_means(comparisons = comps, method = 'wilcox.test')
+stat_compare_means(comparisons = comps, method = 't.test')
 dev.off()
+
+# multi-test correction
+compare_means(N_to_OPC ~ Species, data = df_caud,  method = "t.test", p.adjust.method = "BH")
 
 ####
 ## MOL / NEURON
@@ -259,7 +274,7 @@ theme(text=element_text(size=20, face = 'bold')) +
 rotate_x_text(90) +
 facet_wrap(~Species, nrow = 1) +
 scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
-stat_compare_means(comparisons = comps, method = 'wilcox.test')
+stat_compare_means(comparisons = comps, method = 't.test')
 dev.off()
 
 # Compare and plot the ratio across species
@@ -275,7 +290,7 @@ ylab('MOL / Neuron Ratio in Caudate') +
 theme(text=element_text(size=20, face = 'bold')) +
 rotate_x_text(90) +
 scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
-stat_compare_means(comparisons = comps, method = 'wilcox.test')
+stat_compare_means(comparisons = comps, method = 't.test')
 dev.off()
 
 df_no_mouse_put = df_no_mouse[df_no_mouse$Tissue == 'Putamen',]
@@ -288,7 +303,7 @@ ylab('MOL / Neuron Ratio in Putamen') +
 theme(text=element_text(size=20, face = 'bold')) +
 rotate_x_text(90) +
 scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
-stat_compare_means(comparisons = comps, method = 'wilcox.test')
+stat_compare_means(comparisons = comps, method = 't.test')
 dev.off()
 
 # Comparison with mouse (caudate+putamen)
@@ -302,7 +317,7 @@ ylab('MOL / Neuron Ratio') +
 theme(text=element_text(size=20, face = 'bold')) +
 rotate_x_text(90) +
 scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
-stat_compare_means(comparisons = comps, method = 'wilcox.test')
+stat_compare_means(comparisons = comps, method = 't.test')
 dev.off()
 
 ####
@@ -334,7 +349,7 @@ theme(text=element_text(size=20, face = 'bold')) +
 rotate_x_text(90) +
 facet_wrap(~Species, nrow = 1) +
 scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
-stat_compare_means(comparisons = comps, method = 'wilcox.test')
+stat_compare_means(comparisons = comps, method = 't.test')
 dev.off()
 
 # Compare and plot the ratio across species
@@ -350,7 +365,7 @@ ylab('Ast / Neuron Ratio in Caudate') +
 theme(text=element_text(size=20, face = 'bold')) +
 rotate_x_text(90) +
 scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
-stat_compare_means(comparisons = comps, method = 'wilcox.test')
+stat_compare_means(comparisons = comps, method = 't.test')
 dev.off()
 
 df_no_mouse_put = df_no_mouse[df_no_mouse$Tissue == 'Putamen',]
@@ -363,7 +378,7 @@ ylab('Ast / Neuron Ratio in Putamen') +
 theme(text=element_text(size=20, face = 'bold')) +
 rotate_x_text(90) +
 scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
-stat_compare_means(comparisons = comps, method = 'wilcox.test')
+stat_compare_means(comparisons = comps, method = 't.test')
 dev.off()
 
 # Comparison with mouse (caudate+putamen)
@@ -377,7 +392,7 @@ ylab('Ast / Neuron Ratio') +
 theme(text=element_text(size=20, face = 'bold')) +
 rotate_x_text(90) +
 scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
-stat_compare_means(comparisons = comps, method = 'wilcox.test')
+stat_compare_means(comparisons = comps, method = 't.test')
 dev.off()
 
 ####
@@ -410,7 +425,7 @@ theme(text=element_text(size=20, face = 'bold')) +
 rotate_x_text(90) +
 facet_wrap(~Species, nrow = 1) +
 scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
-stat_compare_means(comparisons = comps, method = 'wilcox.test')
+stat_compare_means(comparisons = comps, method = 't.test')
 dev.off()
 
 # Compare and plot the ratio across species
@@ -426,7 +441,7 @@ ylab('Microglia / Neuron Ratio in Caudate') +
 theme(text=element_text(size=20, face = 'bold')) +
 rotate_x_text(90) +
 scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
-stat_compare_means(comparisons = comps, method = 'wilcox.test')
+stat_compare_means(comparisons = comps, method = 't.test')
 dev.off()
 
 df_no_mouse_put = df_no_mouse[df_no_mouse$Tissue == 'Putamen',]
@@ -439,7 +454,7 @@ ylab('Microglia / Neuron Ratio in Putamen') +
 theme(text=element_text(size=20, face = 'bold')) +
 rotate_x_text(90) +
 scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
-stat_compare_means(comparisons = comps, method = 'wilcox.test')
+stat_compare_means(comparisons = comps, method = 't.test')
 dev.off()
 
 # Comparison with mouse (caudate+putamen)
@@ -453,7 +468,7 @@ ylab('Microglia / Neuron Ratio') +
 theme(text=element_text(size=20, face = 'bold')) +
 rotate_x_text(90) +
 scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
-stat_compare_means(comparisons = comps, method = 'wilcox.test')
+stat_compare_means(comparisons = comps, method = 't.test')
 dev.off()
 
 
@@ -488,7 +503,7 @@ theme(text=element_text(size=20, face = 'bold')) +
 rotate_x_text(90) +
 facet_wrap(~Species, nrow = 1) +
 scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
-stat_compare_means(comparisons = comps, method = 'wilcox.test')
+stat_compare_means(comparisons = comps, method = 't.test')
 dev.off()
 
 # Compare and plot the ratio across species
@@ -503,7 +518,7 @@ xlab('') +
 ylab('Non_SPN / SPN Ratio in Caudate') +
 theme(text=element_text(size=20, face = 'bold')) +
 rotate_x_text(90) +
-stat_compare_means(comparisons = comps, method = 'wilcox.test')
+stat_compare_means(comparisons = comps, method = 't.test')
 dev.off()
 
 df2_no_mouse_put = df2_no_mouse[df2_no_mouse$Tissue == 'Putamen',]
@@ -516,7 +531,7 @@ ylab('Non_SPN / SPN Ratio in Putamen') +
 theme(text=element_text(size=20, face = 'bold')) +
 rotate_x_text(90) +
 scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
-stat_compare_means(comparisons = comps, method = 'wilcox.test')
+stat_compare_means(comparisons = comps, method = 't.test')
 dev.off()
 
 # Comparison with mouse (caudate+putamen)
@@ -530,5 +545,5 @@ ylab('Non_SPN / SPN Ratio') +
 theme(text=element_text(size=20, face = 'bold')) +
 rotate_x_text(90) +
 scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) +
-stat_compare_means(comparisons = comps, method = 'wilcox.test')
+stat_compare_means(comparisons = comps, method = 't.test')
 dev.off()
