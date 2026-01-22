@@ -1344,6 +1344,65 @@ meta_df = b@meta.data
 
 ### run function to generate pseudobulk count matrices for each species and celltype. Keep cellTypes which are present in at least 3 of the samples for a given Species-Tissue as well as genes with at least 1 copy of at least 3 of the samples for a given Species-Tissue. Generate the pseudobulk count matrix for all species-cellTypes except ferret which has only 2 samples using utilities function: pseudobulk_species = function(seurObj, ctype, features = c())
 
+pseudobulk_species
+function(seurObj, ctype, n_copy, sample_number){
+  
+  require(plyr)
+  require(dplyr)
+  require(tidyverse)
+  require(tidyr)
+  require(Seurat)
+  require(ggpubr)
+  require(reshape2)
+  require(data.table)
+  require(rio)
+  require(scran)
+  require(scater)
+  require(SingleCellExperiment)
+  require(edgeR)
+  require(DESeq2)
+  
+  
+  if(!('Sample' %in% colnames(seurObj[[]]))){stop('Please put your donors into Sample column')}
+  if(!('CellType' %in% colnames(seurObj[[]]))){stop('Please put your cell types into CellType column')}
+  
+  # Load RNA
+  meta = seurObj@meta.data
+  metakeep = c('CellType', 'Sample', 'Species')
+  meta = meta[,metakeep]
+  
+  # Subset the given cell type
+  subSeur = subset(seurObj, subset = CellType %in% ctype)
+  
+  # Create SCE assay
+  DefaultAssay(subSeur) = 'RNA'
+  subSCE = as.SingleCellExperiment(subSeur)
+
+  # Pseudobulk SCE assay
+  subGroups = colData(subSCE)[, c("Species", "Sample", "CellType")]
+  subPseudoSCE = sumCountsAcrossCells(subSCE, subGroups)
+  subGroups = colData(subPseudoSCE)[, c("Species", "Sample", "CellType")]
+  subGroups$Sample = factor(subGroups$Sample)
+  subAggMat = subPseudoSCE@assays@data$sum
+  colnames(subAggMat) = subGroups$Sample
+  
+  # binarize the matrix
+  binary_subAggMat = as.matrix((subAggMat >= n_copy) + 0) # genes with at least "n_copy" copy(ies) will be 1
+
+  exp_list = list()
+  # Keep genes expressed in at least "sample_number" samples of any Tissue
+  for(tissue in unique(subSeur$Tissue)){
+	tissue_columns = grepl(tissue, colnames(binary_subAggMat), ignore.case = TRUE)
+	exp_list[[tissue]] = which(rowSums(binary_subAggMat[, tissue_columns]) >= sample_number) %>% names
+  }
+  expgns = Reduce(intersect, exp_list)
+  cat("Length of genes", unique(subSeur$Species), ctype, "=", length(expgns), "\n")
+
+  subAggMat = subAggMat[expgns,]
+  
+  return(subAggMat)
+}
+
 pb_count_list = list()
 for (sp in species_list) {
   sub_obj_new = sub_obj_new_list[[sp]]
