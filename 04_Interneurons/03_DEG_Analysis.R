@@ -352,21 +352,6 @@ go2_foxp2_tshz2 <- enrichGO(foxp2_tshz2_downreg_genes, OrgDb = "org.Hs.eg.db", k
 #write
 go2_foxp2_tshz2_summary <- data.frame(go2_foxp2_tshz2) %>%  write.table(file="EnrichGO_FOXP2_TSHZ2_withinBat_AcrossInterneuron_DEG_down.csv", sep=",", quote=F, row.names = F)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ### GO term analysis - LMO3_BAT
 library(gprofiler2)
 #install.packages("DT")
