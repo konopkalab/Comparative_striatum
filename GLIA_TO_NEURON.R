@@ -373,3 +373,145 @@ dev.off()
 # multi-test correction
 compare_means(N_to_Mig ~ Species, data = df_caud,  method = "t.test", p.adjust.method = "BH")
 
+### convert seurat obj to AnnData for scCODA
+library(Seurat)
+library(SingleCellExperiment)
+library(zellkonverter)
+library(stringr)
+
+# path to save files
+outdir = "/project/Neuroinformatics_Core/Konopka_lab/s422071/workdir_pr/s422071/projects/comparative_striatum/revision/prop_analysis/"
+
+sub_obj_new_list = readRDS("/project/Neuroinformatics_Core/Konopka_lab/s422071/workdir_pr/s422071/projects/comparative_striatum/seu_objs/sub_obj_new_list_with_allsamples.RDS")
+
+for (sp in names(sub_obj_new_list)) {
+  sub_obj_new_list[[sp]][["integrated"]] <- NULL
+  sub_obj_new_list[[sp]][["SCT"]] <- NULL
+}
+
+# merge seu obj
+all_species_seu = Reduce(merge, sub_obj_new_list)
+
+all_species_seu$Species = gsub("chimp","Chimp", all_species_seu$Species)
+all_species_seu$broadannot = gsub("COP", "OPC", all_species_seu$newannot)
+
+# Primate vs mouse, bat, and ferret
+meta = all_species_seu@meta.data
+orig_meta = meta
+
+meta$Species_Broad = 'Primate'
+meta[meta$Species == 'Bat', 'Species_Broad'] = 'Bat'
+meta[meta$Species == 'Ferret', 'Species_Broad'] = 'Ferret'
+meta[meta$Species == 'Mouse', 'Species_Broad'] = 'Mouse'
+meta$id = paste0(meta$orig.ident, "_", meta$Tissue)
+
+## adjust the metadata
+# read species traits taken from https://genomics.senescence.info/species/entry.php?species=Mus_musculus, https://genomics.senescence.info/species/entry.php?species=Mustela_nigripes, https://genomics.senescence.info/species/entry.php?species=Phyllostomus_hastatus, https://animaldiversity.org/accounts/Phyllostomus_hastatus/, https://genomics.senescence.info/species/entry.php?species=Phyllostomus_discolor
+species_traits = read.csv(paste0(outdir, "primate_lifeTraits.csv"))
+species_traits$Chimp = species_traits$chimp 
+
+sample_metadata = read.table(paste0(outdir, "comparative_striatum_sample_metadata.csv"), sep = "\t", header = TRUE,
+  stringsAsFactors = FALSE,
+  check.names = FALSE
+)
+sample_metadata$id = as.character(paste0(sample_metadata$`Barcode/ID`, "_", sample_metadata$`Brain Area`))
+
+meta$id = as.character(meta$id)
+meta$cellbarc = str_split_i(rownames(meta), "-", 1)
+meta$cellID = paste0(meta$cellbarc, "_", meta$id)
+
+# add the ages in years to the single cell-level metadata
+meta_df <- merge(meta, sample_metadata, by = "id", all.x = TRUE)
+meta_df$Species <- meta_df$Species.x
+meta_df$Age <- meta_df$Age.y 
+meta_df$Sex <- meta_df$Sex.y
+
+# check 
+unique(meta_df[is.na(meta_df$Sex),"id"])
+unique(meta_df[is.na(meta_df$Age),"id"])
+unique(meta_df[is.na(meta_df$Species),"id"])
+
+meta_df <- meta_df[, !grepl("\\.x$|\\.y$", names(meta_df))]
+meta_df$Brain.Area = NULL
+
+# Add orig.ident only if rownames are not already "cellbarc-orig.ident"
+rownames(meta_df) <- ifelse(
+  grepl("[-_]", meta_df$cellbarc),  # check for presence of "-" or "_"
+  meta_df$cellbarc,                  # if present, keep as is
+  paste0(meta_df$cellbarc, "-", meta_df$orig.ident)  # else, append orig.ident
+)
+
+# restore original cell order (this prevents scrambling)
+meta_df <- meta_df[rownames(meta), ]
+
+# Check if same set but different order
+setequal(rownames(meta_df), rownames(meta))
+
+
+humanize_all_ages <- function(meta_df, species_traits) {
+  # Initialize vector for humanized ages (same length and order)
+  humanized_ages <- numeric(nrow(meta_df))
+  
+  # Get unique species in the metadata
+  species_list <- unique(meta_df$Species)
+  
+  for (species in species_list) {
+    # Convert ages to numerical
+    species_ages <- meta_df$Age_in_years[meta_df$Species == species]
+    species_ages_num <- as.numeric(species_ages)
+    if (species %in% c("Human")) {
+      # For humans, humanized age = original age
+      humanized_ages[meta_df$Species == species] <- species_ages_num
+    } else {
+      # Check if species exists in lifetraits
+      if (species %in% colnames(species_traits)) {
+        # Build linear model: species ~ Human (lifetraits)
+        model <- lm(species_traits[[species]] ~ species_traits$Human)
+        
+        # Calculate humanized ages using the model coefficients
+        humanized <- (species_ages_num - model$coefficients[1]) / model$coefficients[2]
+        
+        # Assign back to correct rows in humanized_ages vector
+        humanized_ages[meta_df$Species == species] <- humanized
+      } else {
+        warning(paste("Species", species, "not found in lifetraits. Assigning NA"))
+        humanized_ages[meta_df$Species == species] <- NA
+      }
+    }
+  }
+  
+  return(humanized_ages)
+}
+
+
+meta_df$Humanized_age = humanize_all_ages(meta_df, species_traits)
+
+# update the metadata of the seu obj
+# Join by cell ID (ensure cell names match exactly)
+all_species_seu@meta.data = meta_df
+
+# save seu obj
+saveRDS(all_species_seu, file = "/project/Neuroinformatics_Core/Konopka_lab/s422071/workdir_pr/s422071/projects/comparative_striatum/seu_objs/all_species_seu.RDS")
+all_species_seu = readRDS("/project/Neuroinformatics_Core/Konopka_lab/s422071/workdir_pr/s422071/projects/comparative_striatum/seu_objs/all_species_seu.RDS")
+
+## convert seu obj to .h5ad
+# 1. extract raw counts matrix
+counts_mat <- all_species_seu[["RNA"]]$counts
+
+# 2. metadata (convert factors → chars)
+meta_df <- data.frame(lapply(all_species_seu@meta.data, as.character),
+                      stringsAsFactors = FALSE)
+# check
+nrow(meta_df) == ncol(counts_mat)
+
+# 3. create SCE object
+sce <- SingleCellExperiment(
+assays = list(counts = counts_mat)
+)
+colData(sce) <- S4Vectors::DataFrame(meta_df)
+
+# 4. write h5ad directly
+out_path <- paste0(
+"/project/Neuroinformatics_Core/Konopka_lab/s422071/workdir_pr/s422071/projects/comparative_striatum/seu_objs/str_all_species_withallSamples_annotated_seu_obj.h5ad")
+
+zellkonverter::writeH5AD(sce, file = out_path, X_name = "counts")
