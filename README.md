@@ -11,5 +11,5 @@
 - Folder contains spiny projection neuron-related analyses scripts.
 ## 04_Interneurons
 - Folder contains striatal interneuron-related analyses scripts.
-## 05_DEG_analysis
+## 05_DGE_analysis
 - Folder contains pseudobulk DESeq2 analyses scripts in primates.
